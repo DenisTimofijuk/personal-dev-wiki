@@ -36,6 +36,7 @@ systemctl status nfs-kernel-server    # Check NFS service (if used)
 systemctl restart smb                 # Restart SMB/CIFS shares
 systemctl list-units --type=service   # List running services
 journalctl -xe                        # Show recent logs (errors)
+journalctl --since "2025-09-01 17:18:00" --until "2025-09-01 18:00:00" # Show logs in time frame (errors)
 ```
 
 ---
