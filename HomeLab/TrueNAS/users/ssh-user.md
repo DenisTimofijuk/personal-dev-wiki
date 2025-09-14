@@ -202,8 +202,6 @@ Here’s what your final configuration should look like:
 
 ---
 
-::contentReference[oaicite:3]{index=3}
-
 [1]: https://www.truenas.com/docs/scale/scaleuireference/systemsettings/services/sshservicescreenscale/?utm_source=chatgpt.com "SSH Service Screen"
 [2]: https://www.truenas.com/docs/scale/scaletutorials/credentials/managelocalusersscale/?utm_source=chatgpt.com "Managing Users | TrueNAS Documentation Hub"
 [3]: https://www.truenas.com/docs/scale/25.10/scaletutorials/credentials/backupcredentials/addsshconnectionkeypair/?utm_source=chatgpt.com "Adding SSH Credentials"
