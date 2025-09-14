@@ -200,8 +200,6 @@ Here’s what your final configuration should look like:
 * **Firewall / network**: ensure SSH port (default 22) is accessible only where needed.
 * **Key backup**: store private key safely (e.g. encrypted backup).
 
-```
-
 ---
 
 ::contentReference[oaicite:3]{index=3}
