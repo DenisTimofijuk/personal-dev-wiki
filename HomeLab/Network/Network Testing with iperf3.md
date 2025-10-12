@@ -1,4 +1,4 @@
-# 📘 Network Testing with `iperf3`
+# Network Testing with `iperf3`
 
 This guide explains how we used `iperf3` to debug home network issues (TrueNAS server, Fedora PC, Wi-Fi clients, and projector). It includes setup, commands, and how to interpret the results.
 
