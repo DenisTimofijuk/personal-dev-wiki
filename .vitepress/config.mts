@@ -16,6 +16,7 @@ const gitInfo = getGitInfo()
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  head: [['link', { rel: 'icon', href: './favico.ico' }]],
   title: "Personal Dev Wiki",
   description: "My collection of solutions, tutorials, and documentation for homelab, programming, and technical challenges I've encountered.",
   base: '/personal-dev-wiki/', // Important! Replace with your actual repo name
@@ -24,6 +25,10 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
     ],
+
+    logo: {
+      src: '/favico.ico'
+    },
 
     sidebar: generateSidebar({
       documentRootPath: './',

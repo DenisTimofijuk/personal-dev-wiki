@@ -6,6 +6,7 @@ hero:
   name: "Personal Dev Wiki"
   text: "My collection of solutions, tutorials, and documentation"
   tagline: Solutions for homelab, programming, and technical challenges I've encountered
+  image: /logo.png
   actions:
     - theme: brand
       text: Browse Documentation
