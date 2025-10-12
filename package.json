@@ -1,0 +1,28 @@
+{
+  "name": "personal-dev-wiki",
+  "version": "1.0.0",
+  "description": "> My collection of solutions, tutorials, and documentation for homelab, programming, and technical challenges I've encountered.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DenisTimofijuk/personal-dev-wiki.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DenisTimofijuk/personal-dev-wiki/issues"
+  },
+  "homepage": "https://github.com/DenisTimofijuk/personal-dev-wiki#readme",
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "vitepress": "^1.6.4",
+    "vitepress-sidebar": "^1.33.0"
+  }
+}
