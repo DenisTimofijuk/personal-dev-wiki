@@ -18,6 +18,7 @@ const gitInfo = getGitInfo()
 export default defineConfig({
   title: "Personal Dev Wiki",
   description: "My collection of solutions, tutorials, and documentation for homelab, programming, and technical challenges I've encountered.",
+  base: '/personal-dev-wiki/', // Important! Replace with your actual repo name
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
