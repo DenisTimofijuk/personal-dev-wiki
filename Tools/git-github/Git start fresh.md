@@ -1,3 +1,5 @@
+# Git Start Fresh
+
 Since this is your initial commit and you want to start fresh, here are a few ways to handle this:
 
 ## Option 1: Reset to before any commits (Recommended)
@@ -38,5 +40,3 @@ echo "node_modules/" >> .gitignore
 git add .gitignore
 git commit -m "Remove node_modules and add .gitignore"
 ```
-
-I'd recommend **Option 1** since you mentioned wanting to start from the beginning. It's the cleanest approach for an initial commit mistake.

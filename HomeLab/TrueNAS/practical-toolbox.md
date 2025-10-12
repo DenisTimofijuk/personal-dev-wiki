@@ -1,6 +1,7 @@
+# A practical toolbox
+
 A **practical toolbox** of commands that cover the most common maintenance tasks on a TrueNAS Scale box (Debian Linux + ZFS).
 
----
 
 ## 🔍 System Monitoring
 
@@ -13,7 +14,6 @@ df -h                # Disk usage (human-readable)
 du -sh /mnt/*        # Show dataset/folder sizes under /mnt
 ```
 
----
 
 ## 🗄️ Storage / ZFS
 
@@ -26,7 +26,6 @@ du -sh /mnt/*        # Show dataset/folder sizes under /mnt
 /sbin/zfs get compression Pool_A     # Check compression setting
 ```
 
----
 
 ## ⚙️ Services
 
@@ -39,7 +38,6 @@ journalctl -xe                        # Show recent logs (errors)
 journalctl --since "2025-09-01 17:18:00" --until "2025-09-01 18:00:00" # Show logs in time frame (errors)
 ```
 
----
 
 ## 👥 Users & Permissions
 
@@ -50,7 +48,6 @@ who                                  # Who is logged in via SSH
 last                                 # Last logins
 ```
 
----
 
 ## 🌐 Network
 
@@ -60,7 +57,6 @@ ping 8.8.8.8                         # Test internet connectivity
 ss -tulpn                            # Show open ports and listening services
 ```
 
----
 
 ## 📂 File Management
 
@@ -73,7 +69,6 @@ rm file1                             # Delete (⚠ careful!)
 nano filename.txt                    # Edit file (if nano installed)
 ```
 
----
 
 ## 🧹 Housekeeping
 
@@ -83,7 +78,6 @@ shutdown now                         # Shutdown immediately
 sudo apt update && sudo apt upgrade  # Update system (if you enable sudo)
 ```
 
----
 
 ## 🚀 Pro-Tips for Mobile SSH
 

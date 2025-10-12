@@ -1,4 +1,4 @@
-## 🔹 Certificates: what and why
+# 🔹 Certificates: what and why
 
 * Certificates = digital “ID cards” your server shows to prove it’s trusted.
 * They are required for **secure connections**:
@@ -8,7 +8,6 @@
 
 Without them, you’re on **plain HTTP/FTP**, which works but sends passwords/data unencrypted on the LAN. Inside your LAN it’s not terrible, but for remote access (or peace of mind) you want encryption.
 
----
 
 ## 🔹 Which type to use (RSA vs ECC)?
 
@@ -18,7 +17,6 @@ Without them, you’re on **plain HTTP/FTP**, which works but sends passwords/da
 👉 For **maximum compatibility** (especially since cameras might not support ECC):
 **Choose an RSA certificate**.
 
----
 
 ## 🔹 Options in TrueNAS
 
@@ -38,7 +36,6 @@ Without them, you’re on **plain HTTP/FTP**, which works but sends passwords/da
    * Works fine, but every device will warn that it’s “not trusted.”
    * Simpler, but less flexible than using a CA.
 
----
 
 ## 🔹 Recommended path for you (home NAS, no domain):
 
@@ -71,14 +68,12 @@ Without them, you’re on **plain HTTP/FTP**, which works but sends passwords/da
    * **System Settings → Services → FTP → TLS Settings:** check Enable TLS and select your cert for FTPS.
    * SMB/NFS don’t use TLS certs, but you can enable SMB encryption inside SMB settings if needed.
 
----
 
 ## 🔹 After setup
 
 * You’ll access your NAS UI at `https://192.168.1.146/` (browser will warn unless you imported the CA).
 * FTP clients (like FileZilla) will ask you to accept the cert once; after that connections are encrypted.
 
----
 
 ## 🔹 For external secure access
 
@@ -88,7 +83,6 @@ If you later want **public HTTPS** without warnings, you’ll need:
 * A domain name pointing to your NAS.
 * A Let’s Encrypt certificate (TrueNAS supports ACME/DNS authenticators).
 
----
 
 ✅ **So for now:**
 

@@ -2,7 +2,7 @@
 
 This guide covers basic VLAN creation, assignment, and deletion using the HP E3500yl-48G switch web interface.
 
----
+
 
 ## 🟢 Creating a VLAN
 1. Log in to the switch web UI.
@@ -13,7 +13,7 @@ This guide covers basic VLAN creation, assignment, and deletion using the HP E35
    - Leave **Management VLAN** unchecked (unless you intend to manage the switch via this VLAN).
 4. Click **Apply**.
 
----
+
 
 ## 🟡 Assigning Ports to a VLAN
 - Ports can be in multiple VLANs (tagged), but only **untagged in one VLAN**.
@@ -29,7 +29,7 @@ This guide covers basic VLAN creation, assignment, and deletion using the HP E35
 2. If needed, add **port 15** as **Tagged** in VLAN 20 for trunking.
 3. Apply changes.
 
----
+
 
 ## 🔴 Deleting a VLAN
 A VLAN cannot be deleted while any port is assigned to it.
@@ -41,11 +41,11 @@ A VLAN cannot be deleted while any port is assigned to it.
 3. Go to **VLAN 20** and set all ports to **No** (remove Tagged/Untagged members).
 4. Once no ports remain in VLAN 20, delete VLAN 20 from the VLAN list.
 
----
+
 
 ## ⚠️ Best Practices
 - **Do not remove VLAN 1 untagged membership from your management port** (you’ll lose access to the web UI).
 - Keep a **console cable** handy for recovery if VLAN misconfiguration locks you out.
 - Use **Tagged VLANs** only for uplinks or devices that explicitly support VLAN tagging.
 
----
+

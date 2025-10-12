@@ -1,3 +1,5 @@
+# TrueNAS SCALE FTP User Login Guide
+
 ## 1. Create a Dedicated FTP User
 
 1. Go to **Credentials → Local Users → Add**.
@@ -13,7 +15,7 @@
    * **Shell**: set to *nologin* (so the account isn’t usable for SSH).
 3. Save the user.
 
----
+
 
 ## 2. Set Dataset Permissions
 
@@ -23,7 +25,7 @@
 4. Give the `cameraftp` user **Read+Write+Execute** (RWX) permissions.
 5. Save.
 
----
+
 
 ## 3. Enable and Configure the FTP Service
 
@@ -40,7 +42,7 @@
 
    * Optionally, set **Start Automatically** if you want FTP always running.
 
----
+
 
 ## 4. Configure Your Cameras
 
@@ -52,7 +54,7 @@
   * **Password**: the password you set.
   * **Directory/Path**: leave blank or `/` (since the home dir *is* the dataset).
 
----
+
 
 ## 5. Verify
 

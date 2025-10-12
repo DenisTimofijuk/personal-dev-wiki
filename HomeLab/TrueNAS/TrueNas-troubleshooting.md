@@ -27,7 +27,6 @@ Cannot connect to host update.ixsystems.com:443 ssl:default [Temporary failure i
    * If IP works but domain fails → DNS misconfigured.
    * If neither works → check gateway/router.
 
----
 
 ## 🔹 Certificate Warnings in Browser
 
@@ -41,7 +40,6 @@ Cannot connect to host update.ixsystems.com:443 ssl:default [Temporary failure i
 * Import it into your client PC/phone trust store.
 * After import, certificates signed by this CA will be trusted locally.
 
----
 
 ## 🔹 FTP over TLS (FTPS) Fails
 
@@ -55,7 +53,6 @@ Cannot connect to host update.ixsystems.com:443 ssl:default [Temporary failure i
 2. Enable **TLS** and select your Internal Certificate.
 3. In your FTP client (e.g. FileZilla), select **Require Explicit FTP over TLS**.
 
----
 
 ## 🔹 SMB/NFS Not Using Certificates
 
@@ -66,7 +63,6 @@ Cannot connect to host update.ixsystems.com:443 ssl:default [Temporary failure i
 * **SMB:** Enable SMB encryption in share settings.
 * **NFS:** Use Kerberos if advanced security is required.
 
----
 
 ## 🔹 Lost Web UI Access After Network Change
 
@@ -78,7 +74,6 @@ Cannot connect to host update.ixsystems.com:443 ssl:default [Temporary failure i
 * Reset network interface or set DHCP temporarily.
 * Re-apply correct static IP, gateway, and DNS.
 
----
 
 ## 🔹 Disk or Pool Issues
 

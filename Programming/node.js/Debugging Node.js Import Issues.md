@@ -9,7 +9,6 @@
 - [Common Issues and Solutions](#common-issues-and-solutions)
 - [CI/CD Integration](#cicd-integration)
 
----
 
 ## Overview
 
@@ -20,7 +19,6 @@ When working with Node.js/TypeScript projects, import issues can be frustrating 
 
 This guide covers two complementary tools to diagnose and prevent these issues.
 
----
 
 ## Quick Start
 
@@ -45,7 +43,6 @@ npm run dev:inspect
 npm run analyze:circular
 ```
 
----
 
 ## Tool #1: trace-imports.js (Runtime Analysis)
 
@@ -291,7 +288,6 @@ npm run dev:inspect
 **Output:**
 ```
 🔍 Import Tracer Active
----
 
 → [0] ./src/server
   → [1] ./src/app
@@ -329,7 +325,6 @@ TRACE_USER_ONLY=true node -r ./trace-imports.js -r ts-node/register src/server.t
   - ./src/services/ThermalChamberService
 ```
 
----
 
 ## Tool #2: Madge (Static Analysis)
 
@@ -430,7 +425,6 @@ Create `.madgerc` in your project root:
 }
 ```
 
----
 
 ## When to Use Which Tool
 
@@ -481,7 +475,6 @@ npm run analyze:graph
 npm run analyze:circular || exit 1
 ```
 
----
 
 ## Common Issues and Solutions
 
@@ -603,7 +596,6 @@ import { User } from './userService'; // file is UserService.ts
 import { User } from './UserService';
 ```
 
----
 
 ## CI/CD Integration
 
@@ -703,7 +695,6 @@ Add to `package.json`:
 }
 ```
 
----
 
 ## Best Practices
 
@@ -752,7 +743,6 @@ Configure your CI to fail on circular dependencies:
 }
 ```
 
----
 
 ## Troubleshooting
 
@@ -791,7 +781,6 @@ TRACE_MAX_DEPTH=5 npm run dev:inspect
 npm run dev:inspect > imports.log 2>&1
 ```
 
----
 
 ## Additional Resources
 
@@ -800,7 +789,6 @@ npm run dev:inspect > imports.log 2>&1
 - [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html)
 - [Circular Dependencies in JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules#cyclic_imports)
 
----
 
 ## Summary
 
@@ -842,7 +830,6 @@ npm run analyze:circular
 npm run dev:inspect
 ```
 
----
 
 **Last Updated:** October 2025  
 **Maintainer:** Your Team  

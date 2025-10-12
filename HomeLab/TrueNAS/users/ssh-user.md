@@ -2,7 +2,6 @@
 
 This document describes how to set up SSH key-based login for a TrueNAS SCALE user, disable password authentication for SSH, and safely maintain access.
 
----
 
 ## Prerequisites
 
@@ -10,7 +9,6 @@ This document describes how to set up SSH key-based login for a TrueNAS SCALE us
 - A Fedora (or other Linux) machine where you can generate or already have an SSH key pair.  
 - Network access from Fedora to the TrueNAS server (LAN or allowed network).
 
----
 
 ## Step 1: Generate SSH Key Pair (on Fedora)
 
@@ -31,7 +29,6 @@ Copy or note down the contents of the `.pub` file:
 cat ~/.ssh/truenas_id_ed25519.pub
 ```
 
----
 
 ## Step 2: Create or Prepare the User on TrueNAS
 
@@ -46,7 +43,6 @@ cat ~/.ssh/truenas_id_ed25519.pub
    * Set a valid **Shell** (e.g. `/bin/bash` or `/usr/bin/bash`); **do not** use `nologin`.
 4. Save the user.
 
----
 
 ## Step 3: Add Your Public Key to the User’s Authorized Keys
 
@@ -58,7 +54,6 @@ cat ~/.ssh/truenas_id_ed25519.pub
    * Or upload the public key file if UI allows “Choose File / Upload Key”.
 5. Save the user.
 
----
 
 ## Step 4: Configure SSH Service Settings
 
@@ -82,7 +77,6 @@ cat ~/.ssh/truenas_id_ed25519.pub
 
 4. Make sure **SSH service** is *enabled* to start automatically and is currently running.
 
----
 
 ## Step 5: Connect from Fedora & Test Key-Based SSH
 
@@ -101,7 +95,6 @@ ssh -i ~/.ssh/truenas_id_ed25519 username@TRUENAS_IP
   * That SSH service allows public key auth (this is default).
   * Permissions on user’s home, `.ssh` folder, `authorized_keys` file are set properly (700 for `.ssh`, 600 for `authorized_keys`, correct owner).
 
----
 
 ## Step 6: Disable Password Authentication (Once Key Works)
 
@@ -132,7 +125,6 @@ ssh username@TRUENAS_IP
 
 * This should no longer allow login via password (should fail if password auth is disabled).
 
----
 
 ## Best Practices & Troubleshooting
 
@@ -145,7 +137,6 @@ ssh username@TRUENAS_IP
 | Disable password login after key works              | Reduces attack surface; keys are more secure than passwords.                                                                                           |
 | Backup access plan                                  | If you disable password login and lose your private key, you could lock yourself out; keep fallback if possible for emergencies (e.g. console access). |
 
----
 
 ## Example Config Summary
 
@@ -168,7 +159,6 @@ Here’s what your final configuration should look like:
   * SSH command with `-i` to your private key works.
   * SSH command without key / using password is rejected.
 
----
 
 ## Useful TrueNAS Documentation References
 
@@ -176,7 +166,6 @@ Here’s what your final configuration should look like:
 * Managing local users: enabling shells, home directories, disabling user password login if needed. ([TrueNAS Open Enterprise Storage][2])
 * Adding user authorized public keys under Credentials → Users. ([TrueNAS Open Enterprise Storage][3])
 
----
 
 ## Full Workflow at a Glance
 
@@ -188,11 +177,9 @@ Here’s what your final configuration should look like:
 6. Once successful, disable password authentication.
 7. Verify everything works (key login works; password login fails).
 
----
 
 > *This guide is specific to TrueNAS SCALE (2025 / version 26.x / Electric Eel and newer releases). UI layout or labels may change slightly in future versions — always verify with official TrueNAS documentation.*
 
----
 
 ## Change Log / Notes
 
@@ -200,7 +187,6 @@ Here’s what your final configuration should look like:
 * **Firewall / network**: ensure SSH port (default 22) is accessible only where needed.
 * **Key backup**: store private key safely (e.g. encrypted backup).
 
----
 
 [1]: https://www.truenas.com/docs/scale/scaleuireference/systemsettings/services/sshservicescreenscale/?utm_source=chatgpt.com "SSH Service Screen"
 [2]: https://www.truenas.com/docs/scale/scaletutorials/credentials/managelocalusersscale/?utm_source=chatgpt.com "Managing Users | TrueNAS Documentation Hub"

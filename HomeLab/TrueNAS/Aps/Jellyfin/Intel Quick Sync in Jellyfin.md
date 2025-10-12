@@ -4,7 +4,7 @@ This guide explains how to enable **Intel Quick Sync hardware acceleration** for
 
 With QSV enabled, video transcoding is offloaded to the iGPU, reducing CPU usage drastically (from ~50% to ~5% in testing).
 
----
+
 
 ## 🖥️ System Setup
 - **Hardware:** Lenovo PC with Intel i5-7400 (Intel HD Graphics 630, no dedicated GPU)  
@@ -15,7 +15,7 @@ With QSV enabled, video transcoding is offloaded to the iGPU, reducing CPU usage
   - SMB share (direct play)  
   - Android TV app  
 
----
+
 
 ## ⚙️ Step 1. Verify GPU device on host
 
@@ -47,7 +47,7 @@ Expected output (for i5-7400):
 00:02.0 VGA compatible controller: Intel Corporation HD Graphics 630 (rev 04)
 ```
 
----
+
 
 ## ⚙️ Step 2. Configure Jellyfin App in TrueNAS SCALE
 
@@ -57,7 +57,7 @@ Expected output (for i5-7400):
    * This ensures `/dev/dri` is passed into the container.
 3. Save & redeploy the app.
 
----
+
 
 ## ⚙️ Step 3. Enable Quick Sync in Jellyfin
 
@@ -71,7 +71,7 @@ Inside Jellyfin Web UI:
    * H.264, H.265/HEVC, MPEG-2, VP8, VP9.
 5. Save settings and restart Jellyfin.
 
----
+
 
 ## 🐛 Step 4. Common Issues & Debugging
 
@@ -114,7 +114,7 @@ Inside Jellyfin Web UI:
 
    Must show `renderD128`.
 
----
+
 
 ## ✅ Results
 
@@ -124,7 +124,7 @@ Inside Jellyfin Web UI:
 
 This confirms that Intel Quick Sync is active and Jellyfin is using the iGPU for video transcoding.
 
----
+
 
 ## 📌 Notes
 
@@ -133,7 +133,7 @@ This confirms that Intel Quick Sync is active and Jellyfin is using the iGPU for
 * For advanced debugging, use `vainfo` on the host to list supported codecs.
 * Some TrueNAS SCALE builds may require installing extra Intel drivers (`intel-media-driver`), but for the i5-7400 HD 630 this usually works out-of-the-box.
 
----
+
 
 ## 🎉 Conclusion
 

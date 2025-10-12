@@ -1,10 +1,11 @@
+# Circular Dependencies
+
 ## 🔄 Why circular dependencies occur
 
 * **Cross-importing modules** that depend on each other (`A imports B` and `B imports A`).
 * **Deeply coupled layers** (e.g., models importing services that import models).
 * **Re-export barrels** (`index.ts`) that unintentionally re-import the same module.
 
----
 
 ## ✅ Best Practices to Avoid Circular Dependencies
 
@@ -24,7 +25,6 @@
   ```
 * If a service needs a repository, import it — but don’t let repositories import services.
 
----
 
 ### 2. **Dependency Inversion / Interfaces**
 
@@ -47,7 +47,6 @@
   ```
 * This way controllers don’t directly depend on the implementation.
 
----
 
 ### 3. **Avoid `barrel` files for core modules**
 
@@ -66,20 +65,17 @@
   import { UserService } from "../services/UserService";
   ```
 
----
 
 ### 4. **Split into packages or modules**
 
 * For large projects, use **monorepo structure** (e.g., with Nx or Turborepo).
 * Each domain has its own **package** with clear boundaries, and only high-level layers import lower ones.
 
----
 
 ### 5. **Refactor shared logic into utility modules**
 
 * If two modules depend on each other, extract the shared logic into a `utils/` or `common/` module.
 
----
 
 ### 6. **Lazy / Dynamic Imports (when necessary)**
 
@@ -90,7 +86,6 @@
   ```
 * This defers loading and avoids circular load at runtime.
 
----
 
 ## 🛠 Tools to Detect Circular Dependencies
 
@@ -131,7 +126,6 @@
 
    * With `composite` projects, you enforce **modular separation** — no circulars across project boundaries.
 
----
 
 ## 🔑 Summary
 

@@ -7,7 +7,6 @@ System:
 
 Goal: Media storage, documents, apps (Jellyfin, Tailscale, custom Docker), FTP for IP cameras.
 
----
 
 ## 🟢 Step 1: Fresh Install & Basic Settings
 - Installed TrueNAS SCALE.  
@@ -16,7 +15,6 @@ Goal: Media storage, documents, apps (Jellyfin, Tailscale, custom Docker), FTP f
 - Added **email address** for alerts.  
 - Downloaded a copy of the **system configuration backup**.  
 
----
 
 ## 🟢 Step 2: Storage Pool & Datasets
 - Created pool with **mirror (2 disks, 7.28 TiB)**.  
@@ -29,7 +27,6 @@ Goal: Media storage, documents, apps (Jellyfin, Tailscale, custom Docker), FTP f
 - Scheduled **scrub tasks** (monthly).  
 - Added **SMART tests** (short weekly, long monthly).  
 
----
 
 ## 🟢 Step 3: Alerts & Monitoring
 - Configured **email alerts** (*System → General → Email*).  
@@ -37,7 +34,6 @@ Goal: Media storage, documents, apps (Jellyfin, Tailscale, custom Docker), FTP f
 - Made sure **system dataset is stored on the pool**, not boot drive.  
 - Checked **Dashboard & Reporting** for system stats.  
 
----
 
 ## 🟢 Step 4: Apps Setup
 - Added **TrueCharts catalog**:  
@@ -50,7 +46,6 @@ Goal: Media storage, documents, apps (Jellyfin, Tailscale, custom Docker), FTP f
   - **Tailscale** → remote access without port forwarding  
   - Plan: custom apps with Docker later  
 
----
 
 ## 🟢 Step 5: Backup Strategy
 - Configured **ZFS snapshots**:  
@@ -58,7 +53,6 @@ Goal: Media storage, documents, apps (Jellyfin, Tailscale, custom Docker), FTP f
 - (Optional in future) Replication to another NAS.  
 - (Optional in future) Cloud sync (Google Drive, S3, B2).  
 
----
 
 ## 🟢 Step 6: FTP for Security Cameras
 ### Create User
@@ -81,7 +75,6 @@ Goal: Media storage, documents, apps (Jellyfin, Tailscale, custom Docker), FTP f
   - Port: `21`  
   - User/pass: `cameraftp`  
 
----
 
 ## 🟢 Step 7: Manage Camera Storage
 - Cameras save in structure `/Reolink/YYYY/MM/DD`.  
@@ -96,7 +89,6 @@ find /mnt/PoolName/CamRecordings/Reolink/ -type d -mtime +7 -exec rm -rf {} +
 * Tested first with `-print` before enabling.
 * Added **dataset quota** of 1 TiB to stop overflow into other data.
 
----
 
 ## 🟢 Step 8: Certificates & Secure Access
 
@@ -126,7 +118,6 @@ Now:
 * Access web UI via `https://192.168.1.146/` (browser shows self-signed warning).
 * FTP client (FileZilla) can use FTPS for encryption.
 
----
 
 ## 🟢 Step 9: Future Ideas
 
@@ -135,7 +126,6 @@ Now:
 * Maybe move cameras to **SMB/NFS share** later (if supported).
 * If I get a domain: use **Let’s Encrypt** for trusted HTTPS.
 
----
 
 ## 📌 Current Status
 

@@ -2,7 +2,7 @@
 
 This guide explains how we used `iperf3` to debug home network issues (TrueNAS server, Fedora PC, Wi-Fi clients, and projector). It includes setup, commands, and how to interpret the results.
 
----
+
 
 ## 1. Introduction
 
@@ -19,7 +19,7 @@ We used `iperf3` to compare:
 * **Wireless clients (S24 smartphone, projector)**
 * **Effects of extender vs direct Wi-Fi connection**
 
----
+
 
 ## 2. Setup
 
@@ -42,7 +42,7 @@ No extra setup is required. Ensure it can reach the TrueNAS server over the LAN.
 * **Android (S24):** Install [Magic iPerf app](https://play.google.com/store/apps/details?id=tech.misfitlabs.iperf) or \[Termux] and run the same commands.
 * **Projector (if no native shell):** Not always possible. Instead, test using smartphone on the same Wi-Fi segment.
 
----
+
 
 ## 3. Commands Used
 
@@ -65,7 +65,7 @@ iperf3 -c 192.168.1.244 -R
 * **Bitrate (Mbits/sec):** Should approach maximum link speed (≈940 Mbps for gigabit Ethernet).
 * **Retr:** Retransmissions should be `0` (any >0 means packet loss/congestion).
 
----
+
 
 ### 3.2 UDP Test (Packet Loss & Jitter)
 
@@ -87,7 +87,7 @@ iperf3 -c 192.168.1.244 -u -b 100M -t 30 -R --get-server-output
 * **Lost/Total Datagrams:** Shows actual packet loss (0% is excellent).
 * **Jitter (ms):** Should stay <5 ms on Wi-Fi, <1 ms on wired.
 
----
+
 
 ### 3.3 Varying Bandwidths
 
@@ -100,7 +100,7 @@ iperf3 -c 192.168.1.244 -u -b 100M -t 30 --get-server-output  # Heavy use
 iperf3 -c 192.168.1.244 -u -b 300M -t 30 --get-server-output  # Stress test
 ```
 
----
+
 
 ### 3.4 Small Packet Test (SMB-like load)
 
@@ -110,7 +110,7 @@ Since SMB uses many small packets, we tested with smaller datagram size:
 iperf3 -c 192.168.1.244 -u -b 30M -l 512 -t 30 --get-server-output
 ```
 
----
+
 
 ## 4. How to Interpret Results
 
@@ -123,7 +123,7 @@ iperf3 -c 192.168.1.244 -u -b 30M -l 512 -t 30 --get-server-output
 
 ✅ \~940 Mbps throughput, **0 retransmits** = wired link perfect.
 
----
+
 
 ### Example: Wired UDP (Fedora PC → TrueNAS)
 
@@ -134,7 +134,7 @@ iperf3 -c 192.168.1.244 -u -b 30M -l 512 -t 30 --get-server-output
 
 ✅ Zero packet loss, near-zero jitter → excellent for streaming.
 
----
+
 
 ### Example: Wi-Fi Client
 
@@ -144,7 +144,7 @@ iperf3 -c 192.168.1.244 -u -b 30M -l 512 -t 30 --get-server-output
 
 ⚠️ Throughput capped at 50 Mbps, jitter >3 ms, packet loss 0.1% → wireless bottleneck.
 
----
+
 
 ## 5. What We Discovered
 
@@ -152,7 +152,7 @@ iperf3 -c 192.168.1.244 -u -b 30M -l 512 -t 30 --get-server-output
 * **Wi-Fi client (S24):** Inconsistent throughput (20–300 Mbps), occasional loss. Extender likely weak point.
 * **SMB issues:** SMB over Wi-Fi stutters with packet loss, while Jellyfin/YouTube tolerate it thanks to buffering.
 
----
+
 
 ## 6. Troubleshooting Workflow
 
@@ -163,6 +163,6 @@ iperf3 -c 192.168.1.244 -u -b 30M -l 512 -t 30 --get-server-output
 5. **Simulate load**: test different bandwidths and packet sizes.
 6. **Document results**: save iperf3 logs for later comparison.
 
----
+
 
 ✅ With this approach, you can quickly pinpoint whether network issues come from backbone, Wi-Fi, or client devices.
