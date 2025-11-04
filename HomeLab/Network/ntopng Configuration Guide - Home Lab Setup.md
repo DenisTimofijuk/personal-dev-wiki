@@ -9,9 +9,9 @@
 
 ## Overview
 
-This guide documents the configuration of ntopng on TrueNAS Server A (192.168.1.181) for network-wide traffic analysis. The setup monitors mirrored traffic from:
-- **Port 13:** Technicolor F1 Router (192.168.1.1) - Gateway/WAN traffic
-- **Port 14:** TP-Link Archer C1200 (192.168.1.2) - DHCP/DNS server
+This guide documents the configuration of ntopng on TrueNAS Server A ([MONITOR_IP]) for network-wide traffic analysis. The setup monitors mirrored traffic from:
+- **Port 13:** ISP Router ([GATEWAY_IP]) - Gateway/WAN traffic
+- **Port 14:** DHCP/DNS server ([DHCP_DNS_IP]) - DHCP/DNS server
 - **Mirror destination:** Port 29 - TrueNAS Server A
 
 ### Key Features Enabled
@@ -28,7 +28,7 @@ This guide documents the configuration of ntopng on TrueNAS Server A (192.168.1.
 - HP ProCurve switch with port mirroring configured:
   - Source ports: 13, 14
   - Destination port: 29
-- Static IP on monitoring interface: 192.168.1.181
+- Static IP on monitoring interface: [MONITOR_IP]
 - Interface name: `enp2s0` (adjust based on your system)
 
 ### Known Limitations (Free Version)
@@ -67,11 +67,11 @@ This guide documents the configuration of ntopng on TrueNAS Server A (192.168.1.
 
 ### MAC Address Based Traffic Directions
 
-**Value:** `A0:B5:3C:45:58:40,B0-4E-26-94-A9-B5`
+**Value:** [REDACTED_MAC_1],[REDACTED_MAC_2]
 
 These MAC addresses help ntopng determine traffic direction:
-- `A0:B5:3C:45:58:40` = Technicolor F1 (192.168.1.1) - Gateway
-- `B0-4E-26-94-A9-B5` = TP-Link C1200 (192.168.1.2) - DHCP/DNS router
+- [REDACTED_MAC_1] = ISP Router (gateway)  
+- [REDACTED_MAC_2] = DHCP/DNS server (DHCP/DNS router)
 
 **Why needed:** With mirrored traffic, ntopng cannot automatically determine if packets are ingress (incoming) or egress (outgoing). These gateway MACs serve as reference points.
 
@@ -95,7 +95,7 @@ The following checks were enabled beyond the defaults:
 #### 1. **Unexpected DNS Server** ✅
 - **Category:** Cybersecurity
 - **Severity:** Error
-- **Purpose:** Detect devices bypassing AdGuard DNS (192.168.1.181)
+- **Purpose:** Detect devices bypassing AdGuard DNS (primary monitoring DNS)
 - **Why important:** Ensures ad-blocking and DNS filtering works network-wide
 
 #### 2. **Unexpected DHCP Server** ✅
@@ -167,7 +167,7 @@ The following checks were enabled beyond the defaults:
 ❌ **SMTP/NTP Server Contacts** - Covered by "Unexpected" versions  
 ❌ **Domain Names Contacts** - Too noisy (250 threshold too high)  
 ❌ **ICMP Flood** - Uncommon in home networks  
-❌ **SYN Scan Victim** - Threshold too high (32k) for home use  
+❌ **SYN Scan Victim** - Threshold too high for home use  
 ❌ **HTTP Susp. Content** - Causes false positives with ESET antivirus
 
 
@@ -181,11 +181,11 @@ These whitelists define allowed servers for the "Unexpected X Server" alerts.
 
 | Setting | Value | Purpose |
 |---------|-------|---------|
-| **DNS Servers** | `192.168.1.181,192.168.1.1` | AdGuard Home (primary), F1 router (fallback) |
+| **DNS Servers** | [ADGUARD_HOME_IP],[GATEWAY_IP] | AdGuard Home (primary), router (fallback) |
 | **NTP Servers** | *Leave empty initially* | Observe legitimate NTP traffic first, then whitelist |
-| **DHCP Servers** | `192.168.1.2` | TP-Link Archer C1200 (only DHCP server) |
+| **DHCP Servers** | [DHCP_DNS_IP] | DHCP/DNS server (only DHCP server) |
 | **SMTP Servers** | *Leave empty* | No email servers allowed = all SMTP triggers alert |
-| **Network Gateways** | `192.168.1.1` | Technicolor F1 (only gateway) |
+| **Network Gateways** | [GATEWAY_IP] | Gateway device |
 
 ### Important Notes
 
@@ -258,7 +258,7 @@ These whitelists define allowed servers for the "Unexpected X Server" alerts.
 | **MAC Addresses - Traffic** | ✅ Enabled | Useful with 21 static DHCP devices |
 | **VLANs** | ❌ Disabled | VLANs not implemented yet |
 | **Autonomous Systems** | Optional | Enable if interested in ISP/company tracking |
-| **Countries** | ✅ Enabled | ⚠️ Important: Tracks Eport-PE11 China connections |
+| **Countries** | ✅ Enabled | ⚠️ Important: Tracks Eport-PE11 external connections |
 | **Internals** | ❌ Disabled | Only for debugging ntopng itself |
 
 ### System Settings
@@ -311,18 +311,13 @@ Check ntopng's own health:
 
 **Symptom:** ntopng shows warnings about unable to determine traffic direction
 
-**Solution:** Verify MAC addresses are correctly configured:
-```
-A0:B5:3C:45:58:40,B0-4E-26-94-A9-B5
-```
+**Solution:** Verify MAC addresses are correctly configured.
 
-**Check MACs match:**
+**Check MACs match (example commands):**
 ```bash
-# On TP-Link C1200
+# On routers/devices, check the MAC listed in the device's web UI or OS
+# On Linux hosts:
 ip link show | grep ether
-
-# On Technicolor F1
-# Access web interface: Status → Device Info
 ```
 
 #### 2. DHCP Host Monitoring Alert
@@ -335,7 +330,7 @@ ip link show | grep ether
 
 **Symptom:** proftpd process using high CPU alongside ntopng
 
-**Explanation:** This is normal. Your 6 PoE cameras upload video via FTP to TrueNAS Server A. FTP is CPU-intensive.
+**Explanation:** This is normal. Cameras upload video via FTP to TrueNAS Server A. FTP is CPU-intensive.
 
 **Mitigation (if needed):**
 - Consider switching cameras to SMB/NFS storage
@@ -356,7 +351,7 @@ ip link show | grep ether
 
 #### 6. Eport-PE11 Phoning Home
 
-**Known behavior:** Eport-PE11 device (192.168.1.99) contacts Chinese servers (bridge.iotworkshop.com) every minute.
+**Known behavior:** Eport-PE11 device contacts external servers regularly.
 
 **Note:** Device works fine when blocked at firewall. This is documented privacy concern. Monitor under "Countries" stats.
 
@@ -383,7 +378,7 @@ ip link show | grep ether
 
 ### Integration with Home Assistant
 
-Your Home Assistant (192.168.1.94) can potentially integrate with ntopng:
+Your Home Assistant ([HOME_ASSISTANT_IP]) can potentially integrate with ntopng:
 - Monitor network bandwidth per device
 - Create automations based on device connectivity
 - Track data usage for IoT devices
@@ -396,28 +391,28 @@ Your Home Assistant (192.168.1.94) can potentially integrate with ntopng:
 ### Monitored Devices (Partial List)
 
 **Infrastructure:**
-- 192.168.1.1 - Technicolor F1 (Gateway)
-- 192.168.1.2 - TP-Link C1200 (DHCP/DNS)
-- 192.168.1.181 - TrueNAS Server A (This server)
-- 192.168.1.177 - TrueNAS Server B
-- 192.168.1.94 - Home Assistant
+- ISP Router (Gateway) — [IP redacted]
+- DHCP/DNS server (DHCP/DNS) — [IP redacted]
+- TrueNAS Server A (This server) — [MONITOR_IP]
+- TrueNAS Server B — [IP redacted]
+- Home Assistant — [IP redacted]
 
 **Energy Management:**
-- 192.168.1.99 - Eport-PE11 (Smart Meter)
-- 192.168.1.101 - Solis Datalogger (Solar)
-- 192.168.1.211 - Dyness (Battery Backup)
-- 192.168.1.228 - Shelly (Ventilation Control)
+- Eport-PE11 (Smart Meter) — [IP redacted]
+- Solis Datalogger (Solar) — [IP redacted]
+- Dyness (Battery Backup) — [IP redacted]
+- Shelly (Ventilation Control) — [IP redacted]
 
 **Cameras (6x):**
-- 192.168.1.93, .95, .111, .133, .179, .233
+- 6x PoE cameras — IPs redacted for privacy
 
 **Network:**
-- 192.168.1.66 - AirTies WiFi Extender
+- AirTies WiFi Extender — [IP redacted]
 
 **IoT Devices:**
 - Multiple Shelly smart plugs (2.4 GHz WiFi)
 - Samsung smartphones, projector
-- Various WiFi clients via AirTies extender
+- Various WiFi clients via WiFi extender
 
 
 ## Additional Resources
