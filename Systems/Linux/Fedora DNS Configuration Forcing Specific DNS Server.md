@@ -1,170 +1,166 @@
-# Fedora DNS Configuration: Forcing Specific DNS Server
+# Fedora DNS Configuration: Forcing a Specific DNS Server
 
 ## Problem
 
-Fedora system configured to use a specific DNS server (e.g., AdGuard, Pi-hole) for IPv4, but systemd-resolved was falling back to the router's DNS via IPv6 DHCPv6 advertisements.
+A Fedora system was configured to use a specific IPv4 DNS server (e.g., AdGuard, Pi-hole), but systemd-resolved still used the router’s IPv6 DNS advertised via DHCPv6/SLAAC.
 
-## Diagnosis Commands
+## Diagnosis
 
-### Check Current DNS Configuration
+### Check Active DNS
 
 ```bash
 resolvectl status
 ```
 
-This shows which DNS servers are currently being used and where they come from.
-
-### Identify IPv6 Link-Local Address
-
-If you see an IPv6 link-local address (starts with `fe80::`) and want to find its corresponding IPv4:
+### Inspect Neighbor Tables
 
 ```bash
-# Show IPv6 neighbors with their MAC addresses
 ip -6 neigh show dev <interface>
-
-# Show IPv4 neighbors with their MAC addresses
 ip neigh show
-
-# Find specific device by MAC address
 ip neigh show | grep <mac-address>
 ```
 
-### Check NetworkManager Connection Settings
+### Inspect NetworkManager Connection
 
 ```bash
-# List all connections
 nmcli connection show
-
-# View detailed connection settings
 nmcli connection show "<connection-name>"
 ```
 
-Look for these key settings:
-- `ipv4.dns` - Your configured IPv4 DNS
-- `ipv6.method` - How IPv6 is configured (auto/manual/disabled)
-- `ipv6.ignore-auto-dns` - Whether to ignore router-provided DNS
-- `IP6.DNS[1]` - Currently active IPv6 DNS
+Key fields:
+
+* `ipv4.dns`
+* `ipv6.method`
+* `ipv6.ignore-auto-dns`
+* `IP6.DNS[1]`
 
 ## Root Cause
 
-When `ipv6.method` is set to `auto`, the router can advertise its own DNS server via DHCPv6/SLAAC. systemd-resolved may prioritize this over manually configured IPv4 DNS.
+With `ipv6.method=auto`, the router may supply its own DNS via DHCPv6. systemd-resolved may prefer it over the manually configured IPv4 DNS.
 
-## Solution
+## Fix
 
-### Recommended: Ignore Auto-Configured IPv6 DNS
-
-Keep IPv6 working but ignore DNS from router advertisements:
+### Ignore Auto-Provided IPv6 DNS (recommended)
 
 ```bash
-nmcli connection modify <connection-name> ipv6.ignore-auto-dns yes
-nmcli connection up <connection-name>
+nmcli connection modify <connection> ipv6.ignore-auto-dns yes
+nmcli connection up <connection>
 ```
 
-### Verify the Fix
+### Verify
 
 ```bash
 resolvectl status
 ```
 
-Check that only your desired DNS server is listed as "Current DNS Server".
+## Alternatives
 
-## Alternative Solutions
-
-### Option 1: Set IPv6 DNS Explicitly
-
-If your DNS server has an IPv6 address:
+### Explicit IPv6 DNS
 
 ```bash
-nmcli connection modify <connection-name> ipv6.dns "<ipv6-address>"
-nmcli connection modify <connection-name> ipv6.ignore-auto-dns yes
-nmcli connection up <connection-name>
+nmcli connection modify <connection> ipv6.dns "<ipv6-address>"
+nmcli connection modify <connection> ipv6.ignore-auto-dns yes
+nmcli connection up <connection>
 ```
 
-### Option 2: IPv6 Link-Local Only
-
-Keep basic IPv6 connectivity without DHCPv6:
+### IPv6 Link-Local Only
 
 ```bash
-nmcli connection modify <connection-name> ipv6.method link-local
-nmcli connection up <connection-name>
+nmcli connection modify <connection> ipv6.method link-local
+nmcli connection up <connection>
 ```
 
-### Option 3: Disable IPv6 Completely
-
-If IPv6 is not needed:
+### Disable IPv6
 
 ```bash
-nmcli connection modify <connection-name> ipv6.method disabled
-nmcli connection up <connection-name>
+nmcli connection modify <connection> ipv6.method disabled
+nmcli connection up <connection>
 ```
 
-### Option 4: Configure Router
+### Configure Router
 
-Configure your router to advertise your preferred DNS server in IPv6 router advertisements instead of itself.
+Adjust router RAs to advertise your preferred IPv6 DNS.
 
-## Testing Commands
+## Testing
 
-### Test DNS Server Connectivity
+### Connectivity
 
 ```bash
-# Test IPv4 DNS server
-ping -c 2 <dns-server-ip>
-
-# Test IPv6 link-local (requires interface specification)
+ping -c 2 <dns-ip>
 ping -c 2 <ipv6-address>%<interface>
 ```
 
-### Test DNS Resolution
+### Resolution
 
 ```bash
-# Query a domain
 nslookup google.com
-
-# Or use dig for more details
 dig google.com
-
-# Check which DNS server resolved the query
 resolvectl query google.com
 ```
 
-### Check Network Neighbor Tables
+### Neighbor Tables
 
 ```bash
-# View all IPv4 neighbors (ARP table)
 ip neigh show
-
-# View all IPv6 neighbors (NDP table)
 ip -6 neigh show
-
-# View neighbors on specific interface
 ip neigh show dev <interface>
 ip -6 neigh show dev <interface>
 ```
 
 ## Quick Reference
 
-| Command | Purpose |
-|---------|---------|
-| `resolvectl status` | Show current DNS configuration |
-| `nmcli connection show` | List NetworkManager connections |
-| `nmcli connection show "<name>"` | View connection details |
-| `ip neigh show` | Show IPv4 neighbor table |
-| `ip -6 neigh show` | Show IPv6 neighbor table |
-| `nmcli connection modify <name> ipv6.ignore-auto-dns yes` | Ignore router DNS |
-| `nmcli connection up <name>` | Apply connection changes |
-| `ping <address>` | Test connectivity |
-| `nslookup <domain>` | Test DNS resolution |
+| Command                                                   | Purpose                |
+| --------------------------------------------------------- | ---------------------- |
+| `resolvectl status`                                       | Show DNS configuration |
+| `nmcli connection show`                                   | List connections       |
+| `nmcli connection modify <name> ipv6.ignore-auto-dns yes` | Ignore router DNS      |
+| `ip neigh show` / `ip -6 neigh show`                      | View ARP/NDP neighbors |
 
 ## Common Scenarios
 
-### Scenario 1: Router Overriding DNS via IPv6
-**Symptom:** Custom DNS configured but router's DNS is being used  
-**Fix:** `nmcli connection modify <name> ipv6.ignore-auto-dns yes`
+### Router Overriding DNS
 
-### Scenario 2: Want to Use IPv6 DNS
-**Symptom:** DNS server has IPv6 but not configured  
-**Fix:** Set `ipv6.dns` and enable `ipv6.ignore-auto-dns`
+Fix:
 
-### Scenario 3: Don't Need IPv6
-**Symptom:** IPv6 causing DNS issues  
-**Fix:** Set `ipv6.method disabled`
+```bash
+nmcli connection modify <name> ipv6.ignore-auto-dns yes
+```
+
+### Need IPv6 DNS
+
+Set `ipv6.dns` and ignore auto DNS.
+
+### IPv6 Not Needed
+
+Disable IPv6 entirely.
+
+## Setting DNS with NetworkManager
+
+### IPv4
+
+```bash
+nmcli connection modify <connection> ipv4.dns "8.8.8.8 8.8.4.4"
+nmcli connection up <connection>
+```
+
+### IPv6
+
+```bash
+nmcli connection modify <connection> ipv6.dns "2001:4860:4860::8888"
+nmcli connection up <connection>
+```
+
+### Prevent DHCP Overrides
+
+```bash
+nmcli connection modify <connection> ipv4.ignore-auto-dns yes
+nmcli connection modify <connection> ipv6.ignore-auto-dns yes
+nmcli connection up <connection>
+```
+
+### Find Connection Name
+
+```bash
+nmcli connection show
+nmcli connection show --active
+```
