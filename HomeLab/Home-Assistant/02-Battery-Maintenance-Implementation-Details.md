@@ -125,7 +125,7 @@ This helper is the authoritative system state.
 
 
 ### input_datetime.battery_maintenance_phase_start_time
-- Automatically set using `input_datetime.set_datetime` with data: datetime: "{{ now() }}"
+- Automatically set using `input_datetime.set_datetime` with `data: datetime: "{{ now() }}"`
 - Represents the local timestamp of the current phase start
 - Used for:
   - elapsed time display
