@@ -16,6 +16,7 @@ const gitInfo = getGitInfo()
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  srcExclude: ['README.md'],
   head: [['link', { rel: 'icon', href: './favico.ico' }]],
   title: "Personal Dev Wiki",
   description: "My collection of solutions, tutorials, and documentation for homelab, programming, and technical challenges I've encountered.",
@@ -32,6 +33,7 @@ export default defineConfig({
 
     sidebar: generateSidebar({
       documentRootPath: './',
+      excludeByGlobPattern: ['README.md'],
       useTitleFromFileHeading: true,
       hyphenToSpace: true,
       underscoreToSpace: true,
