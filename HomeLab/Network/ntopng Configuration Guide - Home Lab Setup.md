@@ -1,446 +1,182 @@
 # ntopng Configuration Guide - Home Lab Setup
 
-*Configuration guide for ntopng monitoring on TrueNAS Server A with port mirroring*
+*Illustrative configuration and verification guide for ntopng on a passive, switch-mirrored monitoring interface.*
 
-**Last updated:** 2025-11-04  
-**ntopng version:** Free/Community Edition  
-**Environment:** TrueNAS Scale, monitoring mirrored traffic from gateway and DNS router
+> **Historical context:** This article originated in November 2025. Its original check lists, edition entitlements, interface options and deployment-specific settings are **not a current configuration export**. This revision replaces outdated assertions with general guidance. Verify every applicable UI option, script entitlement and threshold against your installed ntopng version before applying a change.
+>
+> For an evidence-based workflow covering DNS, gateway, Flow Flood, Probing Attempt and other alerts, see [Investigating ntopng Alerts on Mirrored and VLAN Networks](./ntopng-Alert-Investigation-Guide.md).
 
+**Updated:** 2026-10-28  
+**Scope:** ntopng Community / Free installations; feature availability varies by build  
+**Example platform:** TrueNAS SCALE or another Linux host receiving traffic from a managed switch's SPAN port
 
 ## Overview
 
-This guide documents the configuration of ntopng on TrueNAS Server A ([MONITOR_IP]) for network-wide traffic analysis. The setup monitors mirrored traffic from:
-- **Port 13:** ISP Router ([GATEWAY_IP]) - Gateway/WAN traffic
-- **Port 14:** DHCP/DNS server ([DHCP_DNS_IP]) - DHCP/DNS server
-- **Mirror destination:** Port 29 - TrueNAS Server A
+A managed switch can mirror selected traffic to a passive monitoring interface for protocol analysis, host/flow observations and anomaly detection. This does **not** automatically provide full-network visibility.
 
-### Key Features Enabled
-- Network-wide traffic visibility
-- Ad-blocking DNS monitoring (AdGuard Home integration)
-- IoT device behavior tracking
-- Security anomaly detection
-- Countries and protocol analysis
+A basic topology contains:
 
+- A managed switch with explicitly selected **mirror sources** (ports, VLANs or both).
+- A **mirror destination** connected to the monitoring host's capture interface.
+- Existing routing and firewall devices whose decisions must be verified **separately** from ntopng observations.
+- An explicitly documented set of local IPv4/IPv6 networks so local/remote interpretation reflects the routed topology.
+
+Avoid publishing actual physical port assignments, interface MAC addresses, IP assignments or private network diagrams.
+
+### Important visibility boundaries
+
+- SPAN may copy the same routed conversation from more than one path. A distinct \`IP@VLAN\` host record is **not** necessarily a distinct physical host.
+- A mirror port or capture host can drop packets under load. Configured sampling rate 1 does **not** establish lossless visibility.
+- Incomplete reverse traffic can make a connection look one-way; a detector record does not necessarily prove a completed session.
+- Counts of **alerts** are not counts of **network flows**, transferred bytes or independently confirmed security incidents.
 
 ## Prerequisites
 
-### Network Setup Required
-- HP ProCurve switch with port mirroring configured:
-  - Source ports: 13, 14
-  - Destination port: 29
-- Static IP on monitoring interface: [MONITOR_IP]
-- Interface name: `enp2s0` (adjust based on your system)
-
-### Known Limitations (Free Version)
-- No flow export
-- Limited historical data retention
-- No enterprise features (LDAP, SNMP device monitoring, etc.)
-
+1. Configure and verify switch source/destination mirroring according to the switch manual. Confirm which tagged/untagged traffic reaches the monitor.
+2. Choose the monitoring host interface and confirm it receives the intended passive traffic. Use a separate management path; do not assume the mirror-only interface can transmit diagnostic packets.
+3. Record the observed router, local-network, DNS and DHCP policy **privately** before setting expectations in ntopng.
+4. Check ntopng edition/version and capture interface statistics before trusting feature names or historical data.
 
 ## Interface Configuration
 
-**Navigation:** `Interfaces → [Select Interface] → Settings`
+**Typical navigation:** \`Interfaces → select interface → Settings\` (version-dependent).
 
-### Basic Settings
+| Setting or check | Recommended review |
+| --- | --- |
+| **Mirrored Traffic** | Enable when available for a passive SPAN interface; verify the setting persists. |
+| **Interface speed** | Set/inspect only according to the actual capture link; do not assume a particular speed. |
+| **Ingress sampling** | Value \`1\` usually denotes no intentional sampling; separately monitor interface and SPAN packet loss. |
+| **Local Broadcast Domain Hosts Identifier** | Inspect the actual supported behavior; mirrored capture can limit MAC attribution. |
+| **Local Networks / local-versus-remote** | Define the actual local prefixes using the supported configuration mechanism; verify several known internal endpoints after a restart. |
+| **Top talkers** | Enable if supported and useful, but validate measurement windows, mirror duplication, missing packets and identity semantics before treating rankings as complete. |
+| **Active network discovery** | Avoid launching active probes from an isolated mirror-only interface. If needed, configure discovery on a separately authorized, routable interface. |
 
-| Setting | Value | Notes |
-|---------|-------|-------|
-| **Custom Name** | `Mirror-Gateway-DNS` | Descriptive name for mirrored traffic |
-| **Interface Speed** | `1000` Mbit/s | Gigabit ethernet |
-| **Ingress Packets Sampling Rate** | `1` | No sampling, capture all packets |
-| **Local Broadcast Domain Hosts Identifier** | `IP Address` | Forced by mirrored traffic mode |
+### MAC- and VLAN-based attribution
 
-### Critical Checkboxes
-
-✅ **Create Interface Top Talkers** - ENABLE
-- Identifies devices generating most traffic
-- Essential for home lab monitoring
-
-✅ **Mirrored Traffic** - ENABLE ⚠️ **CRITICAL**
-- **Must be enabled** for port mirror setups
-- Tells ntopng this is read-only traffic capture
-- Without this, traffic direction detection fails
-
-✅ **Periodic Interface Network Discovery** - ENABLE
-- Automatically discovers and maps network topology
-- Useful for 192.168.1.0/24 network
-
-### MAC Address Based Traffic Directions
-
-**Value:** [REDACTED_MAC_1],[REDACTED_MAC_2]
-
-These MAC addresses help ntopng determine traffic direction:
-- [REDACTED_MAC_1] = ISP Router (gateway)  
-- [REDACTED_MAC_2] = DHCP/DNS server (DHCP/DNS router)
-
-**Why needed:** With mirrored traffic, ntopng cannot automatically determine if packets are ingress (incoming) or egress (outgoing). These gateway MACs serve as reference points.
-
-### Settings to Leave Disabled
-
-❌ **Dynamic Traffic Disaggregation:** `None`  
-❌ **Duplicate Disaggregated Traffic:** Disabled  
-❌ **Push Alerted Hosts to PF_RING:** Disabled (not using PF_RING)
-
+Gateway/router MAC addresses can be reference inputs for traffic direction in some configurations, but are **not** a substitute for validating physical endpoint identity. Routing plus SPAN can associate a client's IP with a router MAC in one observation context and the real device MAC in another. Do not infer rogue hosts or incorrect VLAN placement solely from these UI rows.
 
 ## Behavioral Checks
 
-**Navigation:** `Settings → Preferences → Alerts → Behavioral Checks`
+**Typical navigation:** \`Settings → Preferences / Behavioural Checks\` (varies by release).
 
-**Status:** 90 checks enabled out of 112 total
+The historical installation used particular enabled/disabled checks and count totals; those are neither a recommendation nor a verified current Community feature inventory. Some checks are version- or license-dependent. Audit only the detectors relevant to the monitoring objective.
 
-### Manually Enabled Checks (6 additional)
+| Example detector | What it can help detect | Essential qualification |
+| --- | --- | --- |
+| Unexpected DNS Server | DNS destinations outside an expected-server policy | Destination mismatch is **not** proof that firewall DNS enforcement was bypassed. |
+| Unexpected DHCP Server | Potentially unapproved DHCP-service behavior | Verify DHCP source, VLAN and packet semantics; benign lab services may exist. |
+| Unexpected SMTP/NTP Server | Unexpected service destinations/sources | Compare against documented exceptions; avoid treating every external NTP attempt as malicious. |
+| Unexpected Gateway | Gateway associations not matching the detector's expectations | SPAN/routed \`IP@VLAN\` host artifacts can create false gateway associations. |
+| Flow Flood | High observed host-level connection/flow-rate behavior | A rate threshold is not itself DDoS evidence; check capture duplication and scheduled bursts. |
+| Probing Attempt | Heuristically suspicious connection patterns | A refused or short connection alone does not prove scanning. |
+| Missing SNI TLS Extension | TLS traffic without exposed SNI information | Some benign clients and protocols lack SNI; verify service context. |
+| Blacklisted Country | Traffic involving policy-classified address geographies | Geography alone cannot establish compromise, successful communication or malicious intent. |
 
-The following checks were enabled beyond the defaults:
+Do not assume that a combined alert score equals multiple independent incidents. Review the individual checks contributing to a Flow alert, and confirm whether the alert originated in **Host** or **Flow** history.
 
-#### 1. **Unexpected DNS Server** ✅
-- **Category:** Cybersecurity
-- **Severity:** Error
-- **Purpose:** Detect devices bypassing AdGuard DNS (primary monitoring DNS)
-- **Why important:** Ensures ad-blocking and DNS filtering works network-wide
-
-#### 2. **Unexpected DHCP Server** ✅
-- **Category:** Cybersecurity
-- **Severity:** Error
-- **Purpose:** Detect rogue DHCP servers
-- **Why important:** Protects against DHCP spoofing attacks
-
-#### 3. **Unexpected SMTP Server** ✅
-- **Category:** Cybersecurity
-- **Severity:** Error
-- **Purpose:** Detect unauthorized email servers
-- **Why important:** No email servers should run on home network; catches spam/malware
-
-#### 4. **Unexpected NTP Server** ✅
-- **Category:** Cybersecurity
-- **Severity:** Error
-- **Purpose:** Detect suspicious time servers
-- **Why important:** Some malware uses NTP for C&C communications
-
-#### 5. **Scan** ✅
-- **Category:** Intrusion Detection
-- **Severity:** Error
-- **Threshold:** > 20 Ports (5 Minutes)
-- **Purpose:** Detect port scanning activity
-- **Why important:** Identifies compromised IoT devices (cameras, smart plugs)
-
-#### 6. **Dangerous Host** ✅
-- **Category:** Intrusion Detection
-- **Severity:** Error
-- **Threshold:** > 1000 Score (Minute)
-- **Purpose:** Composite alert based on multiple suspicious behaviors
-- **Why important:** Catches hosts exhibiting multiple anomalies
-
-#### 7. **Remote Connection** ✅
-- **Category:** Cybersecurity
-- **Severity:** Notice
-- **Purpose:** Alert on RDP/SSH/VNC/TeamViewer usage
-- **Why important:** Know when devices are being accessed remotely
-
-#### 8. **DNS Server Contacts** ✅
-- **Category:** Cybersecurity
-- **Severity:** Notice
-- **Threshold:** > 5 Contacts (Minute)
-- **Purpose:** Detect DNS tunneling attempts
-- **Why important:** Complements "Unexpected DNS server" check
-
-#### 9. **Flow Flood** ✅
-- **Category:** Intrusion Detection
-- **Severity:** Error
-- **Threshold:** > 256 Flows/sec (Minute)
-- **Purpose:** Detect connection flood attacks or compromised devices
-- **Why important:** IoT botnets often generate high connection rates
-
-#### 10. **IP/MAC Reassoc/Spoofing** ✅
-- **Category:** Cybersecurity
-- **Severity:** Warning
-- **Purpose:** Detect ARP spoofing attacks
-- **Why important:** Protects against man-in-the-middle attacks on LAN
-
-### Checks Kept Disabled
-
-❌ **IEC Unexpected TypeID** - Industrial control protocol, not relevant  
-❌ **Periodic Flow** - Too noisy for home lab  
-❌ **Blacklisted Country** - Manual maintenance required  
-❌ **TCP Flow Reset** - Too many false positives  
-❌ **Remote to Remote Flow** - Not useful with mirrored traffic  
-❌ **VLAN Bidirectional Traffic** - VLANs not implemented yet  
-❌ **SMTP/NTP Server Contacts** - Covered by "Unexpected" versions  
-❌ **Domain Names Contacts** - Too noisy (250 threshold too high)  
-❌ **ICMP Flood** - Uncommon in home networks  
-❌ **SYN Scan Victim** - Threshold too high for home use  
-❌ **HTTP Susp. Content** - Causes false positives with ESET antivirus
-
+For specific triage and safe rule changes, use the [alert investigation guide](./ntopng-Alert-Investigation-Guide.md).
 
 ## Network Configuration
 
-**Navigation:** `Settings → Preferences → Network Configuration`
+Some builds expose expected DNS/DHCP/NTP/SMTP/gateway lists through the UI, preferences or documented APIs. Storage and update methods **vary by release**; an empty field in one export does not prove that a live persistent list is empty.
 
-These whitelists define allowed servers for the "Unexpected X Server" alerts.
+| Expected-service policy | How to decide an entry belongs |
+| --- | --- |
+| DNS | Compare the **actual current** production DNS upstreams and internal DNS services with the intended network policy. |
+| DHCP | Use the known authorized server/relay inventory; distinguish broadcasts observed on mirrored VLANs. |
+| NTP | Observe legitimate sync destinations and policy before adding exceptions. |
+| SMTP | Compare authorized mail services and source roles; do not assume an empty list automatically produces every conceivable alert. |
+| Gateways | Use the real gateway inventory and account for routed/mirrored host identity artifacts. |
 
-### Configuration Values
+**Detector allowlisting and firewall policy are separate controls.** An expected-server entry can reduce ntopng detection without allowing any packet through the router. Conversely, an unexpected DNS alert cannot prove an unauthorized resolver was reached. Check whether generic/global expected-server entries apply beyond the intended VLAN.
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| **DNS Servers** | [ADGUARD_HOME_IP],[GATEWAY_IP] | AdGuard Home (primary), router (fallback) |
-| **NTP Servers** | *Leave empty initially* | Observe legitimate NTP traffic first, then whitelist |
-| **DHCP Servers** | [DHCP_DNS_IP] | DHCP/DNS server (only DHCP server) |
-| **SMTP Servers** | *Leave empty* | No email servers allowed = all SMTP triggers alert |
-| **Network Gateways** | [GATEWAY_IP] | Gateway device |
-
-### Important Notes
-
-- **Empty SMTP list:** This is intentional. Any SMTP traffic will trigger alerts, catching spam and malware.
-- **NTP servers:** After 24-48 hours of monitoring, check which NTP servers your devices legitimately use, then add them to the whitelist.
-- **DNS configuration:** Critical for ensuring AdGuard Home is being used network-wide.
-
+For changes: preserve the precise previous list, obtain approval, modify only the targeted setting, perform an independent readback, and compare new **Historical** alerts over a bounded post-change period. Avoid broad configuration imports, blanket detector disables, or undocumented persistence edits.
 
 ## Runtime Preferences
 
-**Navigation:** `Settings → Preferences → Runtime Preferences`
+The available options change between versions. Prioritize behavior and risks rather than copying a fixed historical checklist:
 
-### Core Settings
-
-| Setting | Value | Reason |
-|---------|-------|--------|
-| **Active Monitoring** | ✅ Enabled | Monitors host reachability |
-| **Midnight Stats Reset** | ✅ Enabled | Clean daily stats for easier pattern tracking |
-| **Active Local Hosts Cache** | ✅ Enabled | Protects against data loss on crashes |
-| **Log level** | Default (Normal/Info) | Standard logging |
-| **Enable Trace Log** | ❌ Disabled | Only for debugging |
-| **Enable HTTP Access Log** | ❌ Disabled | Not needed for home lab |
-| **Enable Host Pool Events Log** | ❌ Disabled | Not using host pools |
-| **Mask Host IP Addresses** | ❌ Disabled | This is your home network |
-
-### Flow Settings
-
-| Setting | Value | Reason |
-|---------|-------|--------|
-| **Use MAC Address in Flow Key** | ❌ Disabled | IP-based keys sufficient with static DHCP |
-| **Flow Table Begin Column** | ✅ Enabled | Useful to see when flows started |
-| **Flow Table Time** | Duration | More useful than "last seen" time |
-
-### Network Discovery
-
-| Setting | Value | Reason |
-|---------|-------|--------|
-| **Network Discovery** | ✅ Enabled | Basic discovery features |
-| **Active Network Discovery** | ❌ Disabled | ⚠️ **CRITICAL:** Cannot work on mirror port (read-only) |
-| **Network Discovery Debug** | ❌ Disabled | Only for troubleshooting |
-
-**Important:** Active Network Discovery sends ARP/MDNS packets, which is impossible on a mirrored port. Enabling this will cause errors.
-
-### Post-NAT Settings
-
-| Setting | Value | Reason |
-|---------|-------|--------|
-| **Use Post-Nat Destination IPv4** | ❌ Disabled | Not using NetFlow/IPFIX with NAT data |
-| **Use Post-Nat Source IPv4** | ❌ Disabled | Not using NetFlow/IPFIX with NAT data |
-
-### Protocol Learning Periods
-
-| Setting | Value | Notes |
-|---------|-------|-------|
-| **IEC60870 Learning Period** | 6 hours (default) | Not used in this network |
-| **ModbusTCP Learning Period** | 6 hours (default) | Eport-PE11 uses Modbus |
-
-### Statistics & Timeseries
-
-| Setting | Value | Reason |
-|---------|-------|--------|
-| **Fingerprint Statistics** | ✅ Enabled | Helps identify device types |
-| **Sites Collection** | ✅ Enabled | Track visited domains |
-| **One-Way Traffic Timeseries** | ❌ Disabled | Reduces noise from scanning/probing |
-
-### Timeseries Options
-
-| Setting | Value | Reason |
-|---------|-------|--------|
-| **MAC Addresses - Traffic** | ✅ Enabled | Useful with 21 static DHCP devices |
-| **VLANs** | ❌ Disabled | VLANs not implemented yet |
-| **Autonomous Systems** | Optional | Enable if interested in ISP/company tracking |
-| **Countries** | ✅ Enabled | ⚠️ Important: Tracks Eport-PE11 external connections |
-| **Internals** | ❌ Disabled | Only for debugging ntopng itself |
-
-### System Settings
-
-| Setting | Value | Reason |
-|---------|-------|--------|
-| **Automatic Updates** | ❌ Disabled | Manual control over ntopng restarts |
-| **Access Control List** | Empty | No access restrictions needed |
-| **Interface Name Only** | ❌ Disabled | Show full interface details |
-
+- Keep routine logging reasonably bounded; enable verbose traces temporarily for a specific investigation.
+- Protect the ntopng management interface with appropriate network restrictions and authentication. **Do not recommend an empty access-control policy by default.**
+- Enable or disable active monitoring, timeseries families, protocol discovery and host caches according to the current edition, available storage and operational need.
+- Validate flow-key and host-identity behavior across VLANs and routers before interpreting per-device counts; IP-only and MAC-based grouping both have limitations.
+- Be cautious with automatic discovery on passive capture-only paths and avoid intrusive probing without explicit authorization.
+- Treat interface traffic direction, sampled data and application classification as measurements with stated limitations, not ground truth.
 
 ## Expected Performance
 
-### Normal CPU Usage (on TrueNAS Server A)
+Do not reuse CPU, memory or enabled-rule counts from a different installation as universal thresholds. Measure a local baseline at representative traffic levels:
 
-**Baseline:** 6-15% CPU  
-**Peak:** 20-30% CPU (during traffic bursts)  
-**Memory:** ~270MB RAM (1.6-1.7% on 16GB system)
+1. ntopng and host CPU/RAM over ordinary periods and bursts.
+2. Capture interface and upstream SPAN packet drops, including intervals of overload.
+3. ntopng process restarts, data-directory permissions, storage writes and timeseries continuity.
+4. Event retention, alert export or forwarding success, and the latency/availability of the UI.
 
-### Why This is Normal
-
-You're monitoring:
-- **2 mirrored ports** with all gateway and DNS traffic
-- **6 PoE cameras** streaming high-resolution video via FTP
-- **21+ active devices** with static DHCP reservations
-- **Multiple IoT devices** constantly phoning home
-- **84 behavioral checks** running in real-time
-- **Deep packet inspection** (nDPI) on every packet
-
-### Performance Monitoring
-
-Check ntopng's own health:
-- **System → Internals** - Processing statistics
-- **Interface Stats** - Look for packet drops
-
-### When to Be Concerned
-
-⚠️ Investigate if:
-- CPU stays consistently **above 50%**
-- ntopng web interface becomes **unresponsive**
-- You see **packet drops** in interface statistics
-- Memory usage grows **above 1GB**
-
+A running collector with valid daily alert records can still have missing mirrored packets or lossy notification delivery. Document both the success criterion and its coverage limits.
 
 ## Troubleshooting
 
-### Common Issues
+### Missing or misleading local/remote classification
 
-#### 1. Traffic Direction Warnings
+Confirm the actual configured local networks, the service startup options/preferences and the active capture context. A \`local\` flag is not inferred reliably merely from a private-looking address; after modifying the local-network configuration, verify several representative internal hosts.
 
-**Symptom:** ntopng shows warnings about unable to determine traffic direction
+### Unexpected Gateway or duplicate host identities
 
-**Solution:** Verify MAC addresses are correctly configured.
+Check whether an observed client IP occurs under multiple VLAN contexts, whether one row carries a router MAC and whether the real device is present with its own MAC in another context. Reconcile against switch/ARP/DHCP inventory; avoid disabling all gateway checks until the detector's loss of coverage is understood.
 
-**Check MACs match (example commands):**
-```bash
-# On routers/devices, check the MAC listed in the device's web UI or OS
-# On Linux hosts:
-ip link show | grep ether
-```
+### Unexpected DNS Server notifications
 
-#### 2. DHCP Host Monitoring Alert
+Compare observed destinations to actual DNS-production settings, and keep diagnostic probes separate from authorized DNS upstreams. The originating process on a shared host may be unknown. Verify router redirect/deny behavior independently; do not label an attempt a successful bypass.
 
-**Symptom:** Alert: "This interface is monitoring DHCP hosts. Please consider changing the Local Broadcast Domain Hosts Identifier preference to 'MAC Address'"
+### Flow Flood, Probing Attempt or Missing SNI
 
-**Resolution:** This is **expected behavior** with mirrored traffic. The setting is automatically forced to "IP Address" and cannot be changed. You can safely ignore this alert.
+Inspect one or two **Historical** records with full details; note individual check contributions, direction, flags/response, cadence, expected workload and any capture loss. Rate-triggered or failed attempts are not automatically attacks. Document unknowns and avoid global false-positive suppression without corroboration.
 
-#### 3. High CPU Usage from proftpd
+### Active discovery or capture errors
 
-**Symptom:** proftpd process using high CPU alongside ntopng
+A dedicated SPAN interface may have no usable transmit path. Diagnose discovery separately from passive capture and look at the source/destination mirroring configuration, interface link state, driver counters and drop statistics.
 
-**Explanation:** This is normal. Cameras upload video via FTP to TrueNAS Server A. FTP is CPU-intensive.
+### CPU spikes in the monitoring host
 
-**Mitigation (if needed):**
-- Consider switching cameras to SMB/NFS storage
-- Reduce camera resolution/framerate
-- Use hardware-accelerated video encoding on cameras
+Attribute load to the responsible process and workload with operating-system tools. Do not presume ntopng, a file-transfer service or application protocol is responsible solely because they coexist on the host.
 
-#### 4. Active Network Discovery Errors
+## Post-Installation Verification
 
-**Symptom:** Errors about inability to send ARP/MDNS packets
+After a normal observation window:
 
-**Solution:** Ensure "Active Network Discovery" is **DISABLED**. Mirror ports are read-only and cannot send packets.
-
-#### 5. Alerts from ESET Antivirus
-
-**Known behavior:** ESET antivirus updates trigger "HTTP Susp. User-Agent" alerts because the updater doesn't send User-Agent headers.
-
-**Resolution:** This is expected. Verify ESET is installed on the alerting device. See network documentation "Known Alerts" section.
-
-#### 6. Eport-PE11 Phoning Home
-
-**Known behavior:** Eport-PE11 device contacts external servers regularly.
-
-**Note:** Device works fine when blocked at firewall. This is documented privacy concern. Monitor under "Countries" stats.
-
-
-## Post-Installation Tasks
-
-### After 24-48 Hours
-
-1. **Review NTP servers:**
-   - Navigate to: `Hosts → All Hosts`
-   - Filter by protocol: NTP
-   - Identify legitimate NTP servers
-   - Add to Network Configuration whitelist
-
-2. **Check for false positives:**
-   - Review triggered alerts
-   - Adjust thresholds if needed
-   - Whitelist legitimate traffic patterns
-
-3. **Monitor performance:**
-   - Check CPU usage trends
-   - Look for packet drops
-   - Verify no memory leaks
-
-### Integration with Home Assistant
-
-Your Home Assistant ([HOME_ASSISTANT_IP]) can potentially integrate with ntopng:
-- Monitor network bandwidth per device
-- Create automations based on device connectivity
-- Track data usage for IoT devices
-
-*Note: Integration may require custom scripts or MQTT bridge (not covered in this guide)*
-
+1. Verify the selected source traffic, VLAN visibility, network classification and packet-drop counters.
+2. In **Alerts Explorer**, distinguish **Requires Attention** from **Historical** records and compare counts using the same alert type and time range.
+3. Validate the expected-server configuration with a readback, not only a successful save response.
+4. Check that other meaningful detectors remain enabled after any targeted tuning.
+5. If exporting alerts to another system, confirm it can parse subsequent records; do not claim event-by-event losslessness without independent transport evidence.
+6. Record a small rule-decision table with observation, interpretation, keep/tune/disable choice, detection loss, validation and rollback.
 
 ## Network Context Reference
 
-### Monitored Devices (Partial List)
+Use **roles**, not a copied private device inventory, when sharing this guide:
 
-**Infrastructure:**
-- ISP Router (Gateway) — [IP redacted]
-- DHCP/DNS server (DHCP/DNS) — [IP redacted]
-- TrueNAS Server A (This server) — [MONITOR_IP]
-- TrueNAS Server B — [IP redacted]
-- Home Assistant — [IP redacted]
+| Role | Example placeholder |
+| --- | --- |
+| Monitoring host | \`[MONITOR_HOST]\` |
+| Managed switch SPAN source/destination | \`[MIRROR_SOURCE]\` / \`[MIRROR_DESTINATION]\` |
+| Authorized DNS service | \`[DNS_SERVICE]\` |
+| Routed gateway | \`[GATEWAY]\` |
+| Test destination (documentation-only) | \`198.51.100.20\` |
 
-**Energy Management:**
-- Eport-PE11 (Smart Meter) — [IP redacted]
-- Solis Datalogger (Solar) — [IP redacted]
-- Dyness (Battery Backup) — [IP redacted]
-- Shelly (Ventilation Control) — [IP redacted]
-
-**Cameras (6x):**
-- 6x PoE cameras — IPs redacted for privacy
-
-**Network:**
-- AirTies WiFi Extender — [IP redacted]
-
-**IoT Devices:**
-- Multiple Shelly smart plugs (2.4 GHz WiFi)
-- Samsung smartphones, projector
-- Various WiFi clients via WiFi extender
-
+This guide intentionally does not publish physical switch port mappings, device-specific hostnames, actual VLAN allocations or production IP addresses.
 
 ## Additional Resources
 
-- **ntopng Documentation:** https://www.ntop.org/guides/ntopng/
-- **Network Documentation:** See `Network Documentation – Denis Home Lab Smart.md`
-- **Port Mirroring Config:** HP ProCurve E3500yl-48G manual
-
+- [Official ntopng documentation](https://www.ntop.org/guides/ntopng/) — check the installed release and edition.
+- [Investigating ntopng Alerts on Mirrored and VLAN Networks](./ntopng-Alert-Investigation-Guide.md) — practical evidence checklist and rule decision framework.
 
 ## Change Log
 
-**2025-11-04:**
-- Initial ntopng setup on TrueNAS Server A
-- Configured interface for mirrored traffic monitoring
-- Enabled 90 behavioral checks (84 default + 6 custom)
-- Configured network whitelists for DNS, DHCP, Gateway
-- Optimized runtime preferences for home lab environment
-
+- **2025-11-04:** Original illustrative installation and preferences guide recorded.
+- **2026-10-28:** Reframed as historical/version-dependent; removed deployment-specific topology and stale check counts, clarified SPAN/VLAN identity, DNS-policy versus enforcement, alert interpretation, capture limitations and safe change verification.
 
 ## Future Enhancements
 
-Potential improvements documented in network documentation:
-- [ ] Implement VLANs (separate IoT, cameras, servers)
-- [ ] Add Grafana dashboard integration
-- [ ] Export flow data to external SIEM
-- [ ] Implement automated alerting (email/Telegram)
-- [ ] Create Home Assistant integration for bandwidth monitoring
-- [ ] Set up ntopng data backup/retention policy
+Potential extensions—richer traffic history, dashboards and external reporting—should be considered only after validating Community edition availability, packet coverage, counter units, host identity, and the intended measurement window. These are **options**, not confirmed existing capabilities or instructions to deploy.
 
-
-*End of ntopng Configuration Guide*
+*End of ntopng configuration guide.*
