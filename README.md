@@ -11,6 +11,16 @@ Practical notes, troubleshooting guides, and technical references collected whil
 - [Systems](https://denistimofijuk.github.io/personal-dev-wiki/Systems/) — Linux, Fedora, DNS, and system administration.
 - [Tools](https://denistimofijuk.github.io/personal-dev-wiki/Tools/) — Git, Docker, npm, and command-line references.
 
+## Contributing and AI agents
+
+This repository and the published wiki are **public**. Contributions should be safe for everyone to read and reuse.
+
+- **Use a new branch and PR for every change.** Do not push directly to `main`; leave the PR for the repository owner's approval. Do not merge it without explicit permission.
+- **Protect privacy before pushing.** Remove secrets, personal details, company/internal information, real network identifiers, and sensitive content from logs, screenshots, examples, filenames, and PR descriptions. Use synthetic values and documentation-only addresses.
+- **Validate changes.** Run `npm test` (VitePress build and smoke tests) and review automated PR checks. Automated scans cannot certify that content contains no personal data.
+
+**AI coding agents:** read [`AGENTS.md`](AGENTS.md) before working. GitHub Copilot also has [repository instructions](.github/copilot-instructions.md). The full workflow and privacy requirements are in `AGENTS.md`.
+
 ## Run locally
 
 Requires Node.js 20 and npm (matching the GitHub Pages deployment workflow).
