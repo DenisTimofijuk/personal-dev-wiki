@@ -20,9 +20,9 @@ Record before investigating:
 
 ### Why IP@VLAN can mislead
 
-An ntopng display such as **\`192.0.2.10@123\`** may describe the VLAN context **where a packet was observed**, not the physical VLAN of the device whose IP is displayed. A routed packet copied from multiple switch ports can produce distinct host records or intermediate router-MAC associations.
+An ntopng display such as **`192.0.2.10@123`** may describe the VLAN context **where a packet was observed**, not the physical VLAN of the device whose IP is displayed. A routed packet copied from multiple switch ports can produce distinct host records or intermediate router-MAC associations.
 
-Do not count separate \`IP@VLAN\` rows as distinct devices or sum their bytes as though they were independent traffic without validated identity, direction, and de-duplication. Cross-check a purported device identity against DHCP/ARP, switch MAC tables, the routing design, and (where necessary) a small, authorized packet capture.
+Do not count separate `IP@VLAN` rows as distinct devices or sum their bytes as though they were independent traffic without validated identity, direction, and de-duplication. Cross-check a purported device identity against DHCP/ARP, switch MAC tables, the routing design, and (where necessary) a small, authorized packet capture.
 
 ## 2. Use the right alert view
 
@@ -73,7 +73,7 @@ A detector may label a packet addressed to an external resolver even if a router
 - **Hypothesis:** the endpoint tried to avoid the intended resolver or a monitoring tool generated a diagnostic probe.
 - **Confirmed bypass:** independent enforcement-path evidence establishes that the traffic reached and used an unauthorized resolver contrary to policy.
 
-Do **not** mark all DNS records from a shared host as authorized merely because the host also runs the approved DNS service. The originating process/container may be unknown. A parser that separately reports \`sources: {...}\` and \`destinations: {...}\` does **not** preserve source-to-destination pairings; never invent those pairs.
+Do **not** mark all DNS records from a shared host as authorized merely because the host also runs the approved DNS service. The originating process/container may be unknown. A parser that separately reports `sources: {...}` and `destinations: {...}` does **not** preserve source-to-destination pairings; never invent those pairs.
 
 If changing the expected-server list, distinguish **ntopng's detector allowlist** from the firewall's actual enforcement. Check whether a generic/global allowlist entry also suppresses detection in networks where that destination is not operationally approved. Preserve the previous list and perform a targeted readback after any operator-approved change.
 
@@ -116,6 +116,6 @@ For example, *“several detector records match a previously observed failed-con
 
 ## Safety and privacy
 
-Use read-only review first; avoid unapproved scans or destructive packet-capture changes. For screenshots, exports and public troubleshooting questions, remove real addresses, hostnames, VLAN mappings, internal paths, credentials, MAC addresses and user identifiers. Replace them with documentation-only examples such as \`192.0.2.10\`, \`198.51.100.20\` and \`example.com\`.
+Use read-only review first; avoid unapproved scans or destructive packet-capture changes. For screenshots, exports and public troubleshooting questions, remove real addresses, hostnames, VLAN mappings, internal paths, credentials, MAC addresses and user identifiers. Replace them with documentation-only examples such as `192.0.2.10`, `198.51.100.20` and `example.com`.
 
 For general product behavior and version-specific UI options, see the [official ntopng documentation](https://www.ntop.org/guides/ntopng/).
