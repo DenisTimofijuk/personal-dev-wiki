@@ -4,7 +4,7 @@
   "description": "> My collection of solutions, tutorials, and documentation for homelab, programming, and technical challenges I've encountered.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run docs:build && node --test tests/site-build.test.mjs",
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
