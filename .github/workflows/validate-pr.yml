@@ -24,6 +24,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Scan commits for exposed secrets
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITLEAKS_ENABLE_COMMENTS: 'false'
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'
+          GITLEAKS_ENABLE_SUMMARY: 'false'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

@@ -29,8 +29,10 @@ test('homepage preserves branding and GitHub Pages base path', async () => {
   assert.match(html, /\/personal-dev-wiki\/assets\//)
 })
 
-test('repository README is not published as a VitePress page', async () => {
-  await assert.rejects(access(join(outputDir, 'README.html')), {
-    code: 'ENOENT'
-  })
+test('repository guidance files are not published as VitePress pages', async () => {
+  for (const filename of ['README.html', 'AGENTS.html']) {
+    await assert.rejects(access(join(outputDir, filename)), {
+      code: 'ENOENT'
+    })
+  }
 })
