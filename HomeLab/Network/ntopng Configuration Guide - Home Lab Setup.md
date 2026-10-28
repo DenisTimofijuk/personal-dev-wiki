@@ -25,7 +25,7 @@ Avoid publishing actual physical port assignments, interface MAC addresses, IP a
 
 ### Important visibility boundaries
 
-- SPAN may copy the same routed conversation from more than one path. A distinct \`IP@VLAN\` host record is **not** necessarily a distinct physical host.
+- SPAN may copy the same routed conversation from more than one path. A distinct `IP@VLAN` host record is **not** necessarily a distinct physical host.
 - A mirror port or capture host can drop packets under load. Configured sampling rate 1 does **not** establish lossless visibility.
 - Incomplete reverse traffic can make a connection look one-way; a detector record does not necessarily prove a completed session.
 - Counts of **alerts** are not counts of **network flows**, transferred bytes or independently confirmed security incidents.
@@ -39,13 +39,13 @@ Avoid publishing actual physical port assignments, interface MAC addresses, IP a
 
 ## Interface Configuration
 
-**Typical navigation:** \`Interfaces → select interface → Settings\` (version-dependent).
+**Typical navigation:** `Interfaces → select interface → Settings` (version-dependent).
 
 | Setting or check | Recommended review |
 | --- | --- |
 | **Mirrored Traffic** | Enable when available for a passive SPAN interface; verify the setting persists. |
 | **Interface speed** | Set/inspect only according to the actual capture link; do not assume a particular speed. |
-| **Ingress sampling** | Value \`1\` usually denotes no intentional sampling; separately monitor interface and SPAN packet loss. |
+| **Ingress sampling** | Value `1` usually denotes no intentional sampling; separately monitor interface and SPAN packet loss. |
 | **Local Broadcast Domain Hosts Identifier** | Inspect the actual supported behavior; mirrored capture can limit MAC attribution. |
 | **Local Networks / local-versus-remote** | Define the actual local prefixes using the supported configuration mechanism; verify several known internal endpoints after a restart. |
 | **Top talkers** | Enable if supported and useful, but validate measurement windows, mirror duplication, missing packets and identity semantics before treating rankings as complete. |
@@ -57,7 +57,7 @@ Gateway/router MAC addresses can be reference inputs for traffic direction in so
 
 ## Behavioral Checks
 
-**Typical navigation:** \`Settings → Preferences / Behavioural Checks\` (varies by release).
+**Typical navigation:** `Settings → Preferences / Behavioural Checks` (varies by release).
 
 The historical installation used particular enabled/disabled checks and count totals; those are neither a recommendation nor a verified current Community feature inventory. Some checks are version- or license-dependent. Audit only the detectors relevant to the monitoring objective.
 
@@ -66,7 +66,7 @@ The historical installation used particular enabled/disabled checks and count to
 | Unexpected DNS Server | DNS destinations outside an expected-server policy | Destination mismatch is **not** proof that firewall DNS enforcement was bypassed. |
 | Unexpected DHCP Server | Potentially unapproved DHCP-service behavior | Verify DHCP source, VLAN and packet semantics; benign lab services may exist. |
 | Unexpected SMTP/NTP Server | Unexpected service destinations/sources | Compare against documented exceptions; avoid treating every external NTP attempt as malicious. |
-| Unexpected Gateway | Gateway associations not matching the detector's expectations | SPAN/routed \`IP@VLAN\` host artifacts can create false gateway associations. |
+| Unexpected Gateway | Gateway associations not matching the detector's expectations | SPAN/routed `IP@VLAN` host artifacts can create false gateway associations. |
 | Flow Flood | High observed host-level connection/flow-rate behavior | A rate threshold is not itself DDoS evidence; check capture duplication and scheduled bursts. |
 | Probing Attempt | Heuristically suspicious connection patterns | A refused or short connection alone does not prove scanning. |
 | Missing SNI TLS Extension | TLS traffic without exposed SNI information | Some benign clients and protocols lack SNI; verify service context. |
@@ -118,7 +118,7 @@ A running collector with valid daily alert records can still have missing mirror
 
 ### Missing or misleading local/remote classification
 
-Confirm the actual configured local networks, the service startup options/preferences and the active capture context. A \`local\` flag is not inferred reliably merely from a private-looking address; after modifying the local-network configuration, verify several representative internal hosts.
+Confirm the actual configured local networks, the service startup options/preferences and the active capture context. A `local` flag is not inferred reliably merely from a private-looking address; after modifying the local-network configuration, verify several representative internal hosts.
 
 ### Unexpected Gateway or duplicate host identities
 
@@ -157,11 +157,11 @@ Use **roles**, not a copied private device inventory, when sharing this guide:
 
 | Role | Example placeholder |
 | --- | --- |
-| Monitoring host | \`[MONITOR_HOST]\` |
-| Managed switch SPAN source/destination | \`[MIRROR_SOURCE]\` / \`[MIRROR_DESTINATION]\` |
-| Authorized DNS service | \`[DNS_SERVICE]\` |
-| Routed gateway | \`[GATEWAY]\` |
-| Test destination (documentation-only) | \`198.51.100.20\` |
+| Monitoring host | `[MONITOR_HOST]` |
+| Managed switch SPAN source/destination | `[MIRROR_SOURCE]` / `[MIRROR_DESTINATION]` |
+| Authorized DNS service | `[DNS_SERVICE]` |
+| Routed gateway | `[GATEWAY]` |
+| Test destination (documentation-only) | `198.51.100.20` |
 
 This guide intentionally does not publish physical switch port mappings, device-specific hostnames, actual VLAN allocations or production IP addresses.
 
